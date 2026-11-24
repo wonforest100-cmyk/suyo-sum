@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>원하니 수요조사 집계</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
+<style>
+/*
+VOICE  : 담당자 혼자 보는 조용한 집계판. 결론(몇 권, 100권까지 얼마) 먼저.
+IDEA   : 수요조사 페이지와 같은 원하니 종이 · 민트 톤의 장부.
+PICTURE: 첫 화면의 큰 목표 막대와 숫자 세 개.
+COLOUR : 크림 바탕, 진초록 숫자, 민트 막대, 미달은 호박색, 달성은 초록.
+TYPE   : 주아(로고) · 고운돋움(큰 숫자) · Pretendard(표). LAYOUT: 요약 → 교구별 → 교당 목록.
+*/
+:root{--paper:#FBFAF7;--ink:#2A2A28;--sub:#6F6B64;--hair:#E3DED5;--mint:#DDEEE7;--mint2:#EEF5F1;--green:#2E4F46;--g2:#4E7F71;--amber:#B8933A}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--paper);color:var(--ink);font:15.5px/1.6 'Pretendard','Noto Sans KR',system-ui,sans-serif;word-break:keep-all;overflow-x:clip}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(4vw,16px)}
+header{background:var(--mint);padding:22px 0}
+header .wrap{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px}
+.logo b{font-family:'Jua',sans-serif;font-weight:400;font-size:30px;color:var(--green)}
+.logo span{color:var(--g2);font-size:15px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{min-height:42px;padding:0 16px;border-radius:999px;border:1.5px solid var(--g2);background:#fff;color:var(--green);font:600 14.5px 'Pretendard',sans-serif;cursor:pointer}
+.btn.main{background:var(--green);color:#fff;border-color:var(--green)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #8FC3B2;outline-offset:2px}
+.stamp{font-size:13px;color:var(--g2)}
+main.wrap{padding-top:28px;padding-bottom:60px}
+.card{background:#fff;border:1px solid var(--hair);border-radius:18px;padding:22px 24px}
+.sum{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.big{font-family:'Gowun Dodum',sans-serif;font-size:clamp(40px,6vw,64px);line-height:1.05;color:var(--green)}
+.big small{font-size:.45em;margin-left:4px}
+.lbl{font-size:13.5px;color:var(--sub);margin-bottom:4px}
+.bar{height:16px;background:var(--mint2);border-radius:99px;overflow:hidden;margin:14px 0 8px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#8FC3B2,var(--g2));transition:width 1s ease}
+.state{font-weight:700}
+.state.ok{color:var(--g2)}.state.wait{color:var(--amber)}
+.mid{font-family:'Gowun Dodum',sans-serif;font-size:36px;color:var(--ink);line-height:1.1}
+h2{font-family:'Gowun Dodum',sans-serif;font-weight:400;font-size:22px;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+.ring{display:inline-block;width:15px;height:15px;border:3px solid var(--g2);border-radius:50%}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px}
+.drow{display:grid;grid-template-columns:6.5em minmax(0,1fr) 4.5em;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--hair);font-size:14.5px}
+.drow .m{height:10px;background:var(--mint2);border-radius:99px;overflow:hidden}
+.drow .m i{display:block;height:100%;background:var(--g2);border-radius:99px}
+.drow b{text-align:right;white-space:nowrap}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.filters input,.filters select{font:15px 'Pretendard',sans-serif;padding:9px 12px;border:1.5px solid var(--hair);border-radius:10px;background:#fff;min-height:42px}
+.filters input{flex:1 1 220px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;font-weight:600;color:var(--g2);padding:9px 8px;border-bottom:1.5px solid var(--g2);white-space:nowrap;cursor:pointer;user-select:none}
+th[aria-sort=ascending]::after{content:" ▲";font-size:10px}th[aria-sort=descending]::after{content:" ▼";font-size:10px}
+td{padding:9px 8px;border-bottom:1px solid var(--hair);vertical-align:top}
+td.n{text-align:right;font-weight:700;white-space:nowrap}
+td.t,td.p{white-space:nowrap}
+tfoot td{font-weight:700;border-top:1.5px solid var(--g2);border-bottom:0}
+.empty{text-align:center;color:var(--sub);padding:30px 0}
+.gate{max-width:440px;margin:60px auto}
+.gate input{width:100%;font:16px 'Pretendard',sans-serif;padding:13px 15px;border:1.5px solid var(--hair);border-radius:12px;margin:10px 0}
+.msg{font-size:14px;color:#C0533D;min-height:1.4em}
+.dup{background:#FFF6E6}
+.hint{font-size:13px;color:var(--sub);margin-top:10px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;transition:.3s;pointer-events:none}
+.toast.on{opacity:1}
+@media (max-width:860px){.sum{grid-template-columns:repeat(2,minmax(0,1fr))}.sum .card:first-child{grid-column:1/-1}.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){
+  table{font-size:13.5px}
+  .stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--hair)}
+  .stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:6.5em;text-align:start}
+  .stack td::before{content:attr(data-l);float:inline-start;width:6em;margin-inline-start:-6.5em;color:var(--g2);font-weight:600}
+  .stack td:empty{display:none}.stack tfoot{display:none}
+}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="logo">
+      <svg width="34" height="34" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="#4E7F71" stroke-width="12"/></svg>
+      <b>원하니</b><span>학생용 수요조사 집계</span>
+    </div>
+    <div class="tools" id="tools">
+      <span class="stamp" id="stamp"></span>
+      <button class="btn main" id="reload" type="button">새로고침</button>
+      <button class="btn" id="csv" type="button">엑셀용 CSV 받기</button>
+      <button class="btn" id="copy" type="button">표 복사</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="card" id="gate" hidden style="max-width:520px;margin:40px auto"><div class="msg" id="gateMsg"></div><div class="hint" id="setupHint"></div></div>
+
+  <div id="board">
+    <div class="sum">
+      <div class="card">
+        <div class="lbl">신청 수량 합계 · 인쇄 목표 <span id="goalN"></span>권</div>
+        <div class="big"><span id="total">0</span><small>권</small></div>
+        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="목표 대비 신청 수량"><i id="fill"></i></div>
+        <div class="state" id="state"></div>
+      </div>
+      <div class="card"><div class="lbl">신청 교당</div><div class="mid"><span id="temples">0</span><small style="font-size:16px"> 곳</small></div><div class="lbl" style="margin-top:6px">신청 건수 <span id="orders">0</span>건</div></div>
+      <div class="card"><div class="lbl">교당당 평균</div><div class="mid"><span id="avg">0</span><small style="font-size:16px"> 권</small></div><div class="lbl" style="margin-top:6px">최다 <span id="maxq">0</span>권</div></div>
+      <div class="card"><div class="lbl">지도자용 (신청 교당 수)</div><div class="mid"><span id="leaders">0</span><small style="font-size:16px"> 권</small></div><div class="lbl" style="margin-top:6px">학생 참석 인원 합 <span id="stud">0</span>명</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2><span class="ring"></span>교구별</h2>
+        <div id="districts"></div>
+      </div>
+      <div class="card">
+        <h2><span class="ring"></span>신청 목록</h2>
+        <div class="filters">
+          <input id="q" type="search" placeholder="교당 · 교무님 찾기">
+          <select id="fd" aria-label="교구 고르기"><option value="">모든 교구</option></select>
+        </div>
+        <div class="scroll">
+          <table class="stack" id="tbl">
+            <thead><tr><th data-k="time">신청 일시</th><th data-k="district">교구</th><th data-k="temple">교당</th><th data-k="name">담당 교무</th><th data-k="qty">수량</th><th data-k="students">참석</th></tr></thead>
+            <tbody id="rows"></tbody>
+            <tfoot><tr><td colspan="4">보이는 신청 합계</td><td class="n" id="ftot">0</td><td></td></tr></tfoot>
+          </table>
+        </div>
+        <div class="hint">같은 교당이 두 번 이상 신청한 줄은 연한 노란색으로 표시됩니다. 합계에는 모두 더해지니, 중복이면 시트에서 한 줄을 지워 주세요. 연락처와 주소는 이 화면에 나오지 않으니 구글 시트에서 확인해 주세요.</div>
+      </div>
+    </div>
+  </div>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+{
+/* ===== 여기만 고치세요 ===== */
+const CONFIG = {
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwz0cH51tOy4RVhKtLIct3bWXS5zddtJoYgt6JrOL3fnlY5y4bfdE5l82cEidHJ4YTF/exec',   // 수요조사 페이지와 같은 Apps Script 웹앱 주소
+  GOAL: 100
+};
+/* ========================== */
+const $ = id => document.getElementById(id);
+let ROWS = [], SORT = {k: 'time', d: -1};
+const fmt = n => Number(n || 0).toLocaleString('ko-KR');
+const norm = s => String(s ?? '').trim();
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 1800); }
+
+if (!CONFIG.SCRIPT_URL) $('setupHint').textContent = '아직 SCRIPT_URL이 비어 있습니다. 이 파일 아래쪽 CONFIG에 Apps Script 웹앱 주소를 넣어 주세요.';
+
+async function load(){
+  if (!CONFIG.SCRIPT_URL) throw new Error('SCRIPT_URL이 비어 있습니다.');
+  const r = await fetch(CONFIG.SCRIPT_URL + '?action=list&t=' + Date.now());
+  const j = await r.json();
+  if (!j.ok) throw new Error('불러오지 못했습니다.');
+  ROWS = (j.rows || []).map(x => ({...x, qty: Number(x.qty) || 0, students: norm(x.students), district: norm(x.district) || '(미기재)', temple: norm(x.temple), name: norm(x.name)}));
+  $('stamp').textContent = '불러온 시각 ' + new Date().toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'});
+  render();
+}
+
+function summary(){
+  const total = ROWS.reduce((a, r) => a + r.qty, 0);
+  const temples = new Set(ROWS.map(r => r.district + '|' + r.temple)).size;
+  $('goalN').textContent = CONFIG.GOAL;
+  $('total').textContent = fmt(total);
+  const pct = Math.min(100, total / CONFIG.GOAL * 100);
+  $('fill').style.width = pct + '%';
+  document.querySelector('.bar').setAttribute('aria-valuenow', Math.round(pct));
+  const st = $('state');
+  st.className = 'state ' + (total >= CONFIG.GOAL ? 'ok' : 'wait');
+  st.textContent = total >= CONFIG.GOAL ? `목표 달성 — 인쇄 가능 (+${fmt(total - CONFIG.GOAL)}권)` : `목표까지 ${fmt(CONFIG.GOAL - total)}권 남음 (${Math.round(pct)}%)`;
+  $('temples').textContent = fmt(temples);
+  $('orders').textContent = fmt(ROWS.length);
+  $('avg').textContent = temples ? (total / temples).toFixed(1) : '0';
+  $('maxq').textContent = fmt(Math.max(0, ...ROWS.map(r => r.qty)));
+  $('leaders').textContent = fmt(temples);
+  $('stud').textContent = fmt(ROWS.reduce((a, r) => a + (parseInt(r.students, 10) || 0), 0));
+
+  const by = {};
+  ROWS.forEach(r => { by[r.district] = (by[r.district] || 0) + r.qty; });
+  const list = Object.entries(by).sort((a, b) => b[1] - a[1]);
+  const mx = Math.max(1, ...list.map(x => x[1]));
+  const box = $('districts'); box.textContent = '';
+  if (!list.length) { box.innerHTML = '<div class="empty">아직 신청이 없습니다.</div>'; }
+  list.forEach(([d, q]) => {
+    const row = document.createElement('div'); row.className = 'drow';
+    const a = document.createElement('span'); a.textContent = d;
+    const m = document.createElement('span'); m.className = 'm'; const i = document.createElement('i'); i.style.width = (q / mx * 100) + '%'; m.appendChild(i);
+    const b = document.createElement('b'); b.textContent = fmt(q) + '권';
+    row.append(a, m, b); box.appendChild(row);
+  });
+  const sel = $('fd'), cur = sel.value;
+  sel.length = 1;
+  list.forEach(([d]) => { const o = document.createElement('option'); o.value = o.textContent = d; sel.appendChild(o); });
+  sel.value = list.some(x => x[0] === cur) ? cur : '';
+}
+
+function visibleRows(){
+  const q = $('q').value.trim().toLowerCase(), d = $('fd').value;
+  let v = ROWS.filter(r => (!d || r.district === d) && (!q || [r.temple, r.name, r.district].join(' ').toLowerCase().includes(q)));
+  const k = SORT.k;
+  v.sort((a, b) => (k === 'qty' ? a.qty - b.qty : String(a[k]).localeCompare(String(b[k]), 'ko')) * SORT.d);
+  return v;
+}
+function when(iso){ const t = new Date(iso); return isNaN(t) ? iso : `${t.getMonth() + 1}/${t.getDate()} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`; }
+const COLS = [['time', '신청 일시', 't'], ['district', '교구', ''], ['temple', '교당', ''], ['name', '담당 교무', ''], ['qty', '수량', 'n'], ['students', '참석', '']];
+function table(){
+  const v = visibleRows(), body = $('rows'); body.textContent = '';
+  const count = {}; ROWS.forEach(r => { const k = r.district + '|' + r.temple; count[k] = (count[k] || 0) + 1; });
+  if (!v.length) { const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 6; td.className = 'empty'; td.textContent = ROWS.length ? '찾는 신청이 없습니다.' : '아직 신청이 없습니다.'; tr.appendChild(td); body.appendChild(tr); }
+  v.forEach(r => {
+    const tr = document.createElement('tr');
+    if (count[r.district + '|' + r.temple] > 1) tr.className = 'dup';
+    COLS.forEach(([k, l, c]) => { const td = document.createElement('td'); td.dataset.l = l; if (c) td.className = c; td.textContent = k === 'time' ? when(r.time) : k === 'qty' ? fmt(r.qty) : r[k]; tr.appendChild(td); });
+    body.appendChild(tr);
+  });
+  $('ftot').textContent = fmt(v.reduce((a, r) => a + r.qty, 0));
+  document.querySelectorAll('th[data-k]').forEach(th => th.setAttribute('aria-sort', th.dataset.k === SORT.k ? (SORT.d > 0 ? 'ascending' : 'descending') : 'none'));
+}
+function render(){ summary(); table(); }
+
+document.querySelectorAll('th[data-k]').forEach(th => th.addEventListener('click', () => {
+  SORT = {k: th.dataset.k, d: SORT.k === th.dataset.k ? -SORT.d : (th.dataset.k === 'qty' || th.dataset.k === 'time' ? -1 : 1)}; table();
+}));
+$('q').addEventListener('input', table);
+$('fd').addEventListener('change', table);
+
+function rowsAsMatrix(){
+  return [['신청 일시', '교구', '교당', '담당 교무', '학생용 수량', '참석 인원'],
+          ...visibleRows().map(r => [when(r.time), r.district, r.temple, r.name, r.qty, r.students])];
+}
+$('csv').addEventListener('click', () => {
+  const cell = v => { let s = String(v ?? ''); if (/^[=+\-@]/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const text = '﻿' + rowsAsMatrix().map(r => r.map(cell).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type: 'text/csv;charset=utf-8'}));
+  const d = new Date(); a.download = `원하니_수요조사_${d.getMonth() + 1}월${d.getDate()}일.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+});
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(rowsAsMatrix().map(r => r.join('\t')).join('\n')); toast('표를 복사했습니다. 엑셀에 붙여 넣으세요.'); }
+  catch(e){ toast('복사하지 못했습니다. CSV 받기를 써 주세요.'); }
+});
+$('reload').addEventListener('click', async () => { try { await load(); toast('새로 불러왔습니다.'); } catch(e){ toast(e.message); } });
+async function start(){
+  try { await load(); }
+  catch(e){ $('gate').hidden = false; $('gateMsg').textContent = e.message; }
+}
+start();
+setInterval(() => { if (!$('board').hidden && document.visibilityState === 'visible') load().catch(() => {}); }, 60000);
+}
+</script>
+</body>
+</html>
